@@ -10,7 +10,7 @@
 /* Default data type is double, default size is 1024. */
 #include "lu.h"
 
-#define N_THREADS_GPU 1024
+#define NTHREADS_GPU 1024
 #define SM 64
 
 /* Array initialization. */
@@ -42,24 +42,47 @@ static void print_array(int n,
   fprintf(stderr, "\n");
 }
 
+static void my_print_array(int n,
+                        DATA_TYPE POLYBENCH_2D(A, N, N, n, n))
+
+{
+  int i, j;
+
+  for (i = 0; i < n; i++)
+  {
+    for (j = 0; j < n; j++)
+    {
+      fprintf(stdout, DATA_PRINTF_MODIFIER, A[i][j]);
+    }
+  fprintf(stdout, "\n");
+  }
+}
+
+
 /* Main computational kernel. The whole function will be timed,
    including the call and return. */
-static void kernel_lu(int n,
-                      DATA_TYPE POLYBENCH_2D(A, N, N, n, n))
-{
-  int i, j, k;
-  int bk = _PB_N / SM;
-
-  #pragma omp target data map(tofrom:A,n)
-  #pragma omp target teams num_teams(bk/N_THREADS_GPU) thread_limit(N_THREADS_GPU)
-  #pragma omp distribute parallel for dist_schedule(static)
-  for (k = 0; k < _PB_N; k+=bk)
+static void kernel_lu(int n, DATA_TYPE POLYBENCH_2D(A, N, N, n, n))
+{    
   {
-    for (j = k + 1; j < _PB_N; j++)
-      A[k][j] = A[k][j] / A[k][k];
-    for (i = k + 1; i < _PB_N; i++)
+    int i, j, k;
+    int bk = _PB_N/SM;
+
+    #pragma omp target data map(tofrom:A)
+    { 	
+    for (k = 0; k < _PB_N; k++)
+    {
+	    
+      #pragma omp parallel for
       for (j = k + 1; j < _PB_N; j++)
-        A[i][j] = A[i][j] - A[i][k] * A[k][j];
+        A[k][j] = A[k][j] / A[k][k];     
+     
+      #pragma omp parallel for
+      for (i = k + 1; i < _PB_N; i++)
+        for (j = k + 1; j < _PB_N; j++)
+          A[i][j] = A[i][j] - A[i][k] * A[k][j];
+    
+    }
+    }
   }
 }
 
@@ -73,7 +96,7 @@ int main(int argc, char **argv)
 
   /* Initialize array(s). */
   init_array(n, POLYBENCH_ARRAY(A));
-
+  //my_print_array(n, POLYBENCH_ARRAY(A));
   /* Start timer. */
   polybench_start_instruments;
 
@@ -87,6 +110,8 @@ int main(int argc, char **argv)
   /* Prevent dead-code elimination. All live-out data must be printed
      by the function call in argument. */
   polybench_prevent_dce(print_array(n, POLYBENCH_ARRAY(A)));
+  printf("\n");
+  //my_print_array(n, POLYBENCH_ARRAY(A));
 
   /* Be clean. */
   POLYBENCH_FREE_ARRAY(A);
