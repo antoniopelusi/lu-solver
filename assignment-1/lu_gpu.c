@@ -10,9 +10,6 @@
 /* Default data type is double, default size is 1024. */
 #include "lu.h"
 
-#define NTHREADS_GPU 1024
-#define SM 64
-
 /* Array initialization. */
 static void init_array(int n,
                        DATA_TYPE POLYBENCH_2D(A, N, N, n, n))
@@ -65,7 +62,6 @@ static void kernel_lu(int n, DATA_TYPE POLYBENCH_2D(A, N, N, n, n))
 {    
   {
     int i, j, k;
-    int bk = _PB_N/SM;
 
     #pragma omp target data map(tofrom:A)
     { 	
