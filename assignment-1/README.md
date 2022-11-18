@@ -1,4 +1,10 @@
 # Assignment 1: LU solver
+## Participants:
+- Antonio Pelusi 257241 257241@studenti.unimore.it
+- Gaia Forghieri gaia.forghieri gaia.forghieri@gmail.com
+- Alberto Stefani 257434 257434@studenti.unimore.it
+- Fjona Minga 316840 316840@studenti.unimore.it
+
 ## Files:
 1. **lu.c**: without parallelization
 2. **lu_for_static.c**: with *parallel for static (1, 256, and 1024 chunk size)*
