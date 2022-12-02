@@ -1,4 +1,4 @@
-# Assignment 1: LU solver
+# Assignment 1: LU solver with OpenMP
 ## Participants:
 - Antonio Pelusi 257241 257241@studenti.unimore.it
 - Gaia Forghieri gaia.forghieri gaia.forghieri@gmail.com
