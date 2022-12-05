@@ -12,3 +12,5 @@ where:
 Parallelization made using:
 - OpenMP
 - CUDA
+
+Device used: Jetson Nano
