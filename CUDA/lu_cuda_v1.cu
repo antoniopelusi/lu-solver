@@ -25,16 +25,11 @@ static inline void gpuAssert(cudaError_t code, const char *file, int line, bool 
 
 
 static void init_array(int n, float *A)
-{
-    
-    //printf("Entro in init! \n");
-    
+{    
     int i, j;
     
     for (i = 0; i < n; i++) {
-        //printf("%d \n", i);
         for (j = 0; j < n; j++)
-            //printf("%d \n", j);
             A[i*n+j] = ((float)(i + 1) * (j + 1)) / n;
     }
 }
