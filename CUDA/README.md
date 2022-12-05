@@ -6,4 +6,4 @@
 - Fjona Minga 316840 316840@studenti.unimore.it
 
 ## Files:
-1. **lu_cuda.gpu**: CUDA parallelization
+1. **lu_cuda.cu**: CUDA parallelization
