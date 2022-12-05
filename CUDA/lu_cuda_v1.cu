@@ -63,7 +63,7 @@ static void kernel_lu(int n, float *A)
     }
 }
 
-__global__ void gpu_kernel_lu(float *A, int k, int n)
+__global__ void gpu_kernel_lu(float * __restrict__ A, int k, int n)
 {
     int i = threadIdx.y + blockIdx.y * blockDim.y;
     int j = threadIdx.x + blockIdx.x * blockDim.x;
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     kernel_lu(n, A);
     clock_gettime(CLOCK_REALTIME, rt + 1);
     wt = (rt[1].tv_sec - rt[0].tv_sec) + 1.0e-9 * (rt[1].tv_nsec - rt[0].tv_nsec);
-    printf("KERNEL_LU (Host) : %9.9f sec %9.9f GFLOPS\n", wt, 2.0 * n * n * n / (1.0e9 * wt));
+    printf("KERNEL_LU (Host) : %9.3f sec %9.1f GFLOPS\n", wt, 2.0 * n * n * n / (1.0e9 * wt));
     //print_array(n, A);
 
     init_array(n, A);
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
     clock_gettime(CLOCK_REALTIME, rt2 + 1);
 
     wt2 = (rt2[1].tv_sec - rt2[0].tv_sec) + 1.0e-9 * (rt2[1].tv_nsec - rt2[0].tv_nsec);
-    printf("KERNEL_LU (GPU) : %9.9f sec %9.9f GFLOPS\n", wt2, 2.0 * n * n * n / (1.0e9 * wt2));
+    printf("KERNEL_LU (GPU) : %9.3f sec %9.1f GFLOPS\n", wt2, 2.0 * n * n * n / (1.0e9 * wt2));
 
     //print_array(n, A);
 
