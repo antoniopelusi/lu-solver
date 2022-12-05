@@ -25,7 +25,7 @@ static inline void gpuAssert(cudaError_t code, const char *file, int line, bool 
 
 
 static void init_array(int n, float *A)
-{    
+{
     int i, j;
     
     for (i = 0; i < n; i++) {
@@ -59,7 +59,7 @@ static void kernel_lu(int n, float *A)
             A[k*n+j] = A[k*n+j] / A[k*n+k];
         for (i = k + 1; i < n; i++)
             for (j = k + 1; j < n; j++)
-                A[i*n+j] = A[i*n+j] + A[i*n+k] * A[k*n+j];
+                A[i*n+j] = A[i*n+j] - A[i*n+k] * A[k*n+j];
     }
 }
 
@@ -74,9 +74,10 @@ __global__ void gpu_kernel_lu(float * __restrict__ A, int k, int n)
 	{
             A[k*n+j] = A[k*n+j] / A[k*n+k];
 	}
+
         __syncthreads();
 
-        A[i*n+j] = A[i*n+j] + A[i*n+k] * A[k*n+j];
+        A[i*n+j] = A[i*n+j] - A[i*n+k] * A[k*n+j];
     }
 }
 
@@ -87,37 +88,47 @@ int main(int argc, char **argv)
     struct timespec rt[2];
     double wt;
     float *A;
+  
+    //memory allocation for A in the host
     A = (float *)malloc(n * n * sizeof(*A));
 
+    //init array
     init_array(n, A);
+  
     clock_gettime(CLOCK_REALTIME, rt + 0);
+  
+    //host kernel call
     kernel_lu(n, A);
+  
     clock_gettime(CLOCK_REALTIME, rt + 1);
+  
     wt = (rt[1].tv_sec - rt[0].tv_sec) + 1.0e-9 * (rt[1].tv_nsec - rt[0].tv_nsec);
     printf("KERNEL_LU (Host) : %9.3f sec %9.1f GFLOPS\n", wt, 2.0 * n * n * n / (1.0e9 * wt));
+  
     //print_array(n, A);
 
+    //init array (reset)
     init_array(n, A);
     
-    //cudaMalloc
+    //memory allocation for A in the GPU
     float *d_A;
     gpuErrchk(cudaMalloc((void **)&d_A, sizeof(float) * n * n));
 
-    //cudamemcopy
     struct timespec rt2[2];
     double wt2;
     clock_gettime(CLOCK_REALTIME, rt2 + 0);
 
+    //copy A from host to device
     gpuErrchk(cudaMemcpy(d_A, A, sizeof(float) * n * n, cudaMemcpyHostToDevice));    
 
     dim3 dimGrid((n+BLOCK_SIZE-1)/BLOCK_SIZE, (n+BLOCK_SIZE-1)/BLOCK_SIZE);
     dim3 dimBlock(BLOCK_SIZE,BLOCK_SIZE);
    
-   
+    //GPU kernel call
     for (k = 0; k<n; k++)
         gpu_kernel_lu<<<dimGrid, dimBlock>>>(d_A, k, n);
-
    
+    //copy A from device to host
     gpuErrchk(cudaMemcpy(A, d_A, sizeof(float) * n * n, cudaMemcpyDeviceToHost));    
 
     clock_gettime(CLOCK_REALTIME, rt2 + 1);
@@ -126,6 +137,10 @@ int main(int argc, char **argv)
     printf("KERNEL_LU (GPU) : %9.3f sec %9.1f GFLOPS\n", wt2, 2.0 * n * n * n / (1.0e9 * wt2));
 
     //print_array(n, A);
+
+    //free memory
+    free(A);
+    gpuErrchk(cudaFree(d_A));
 
     cudaDeviceReset();
     return 0;
