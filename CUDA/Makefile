@@ -20,7 +20,6 @@ LDFLAGS:=-lm -lcudart $(EXT_LDFLAGS)
 NVCFLAGS:=$(CXXFLAGS) $(NVOPT)
 NVLDFLAGS:=$(LDFLAGS) -lgomp
 
-SRCS:= utils.c
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o) $(EXERCISE:%=$(BUILD_DIR)/%.o)
 EXE=$(EXERCISE:.cu=.exe)
 
