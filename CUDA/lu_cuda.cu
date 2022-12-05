@@ -6,8 +6,13 @@
 
 #include <cuda_runtime.h>
 
+#ifndef N
 #define N 1024
+#endif
+
+#ifndef BLOCK_SIZE
 #define BLOCK_SIZE 32
+#endif
 
 #define gpuErrchk(ans)                        \
     {                                         \
